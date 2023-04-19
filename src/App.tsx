@@ -1,7 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
-
-import type { RotationType } from './types';
+import type { IntervalIdType, RotationType } from './types';
 
 import logo from './logo.svg';
 import './App.css';
@@ -13,6 +12,47 @@ const ratio = (maxIconHeight - minIconHeight) / (window.innerHeight + window.inn
 function App() {
   const [height, setHeight] = useState<number>(maxIconHeight);
   const [rotation, setRotation] = useState<RotationType>('normal');
+  const [openedTime, setOpenedTime] = useState<number>(0);
+  const [idleTime, setIdleTime] = useState<number>(0);
+  const intervalIdRef = useRef<IntervalIdType>({
+    opened: null,
+    idle: null,
+  });
+
+  useEffect(() => {
+    startOpenedInterval();
+
+    return () => {
+      clearOpenedInterval();
+      clearIdleInterval();
+    }
+  }, []);
+
+  const startOpenedInterval = () => {
+    intervalIdRef.current.opened = setInterval(() => {
+      setOpenedTime((prevVal) => prevVal + 1)
+    }, 1000);
+  };
+
+  const clearOpenedInterval = () => {
+    if (intervalIdRef.current.opened) {
+      clearInterval(intervalIdRef.current.opened);
+      intervalIdRef.current.opened = null;
+    }
+  };
+
+  const startIdleInterval = () => {
+    intervalIdRef.current.idle = setInterval(() => {
+      setIdleTime((prevVal) => prevVal + 1)
+    }, 1000);
+  };
+
+  const clearIdleInterval = () => {
+    if (intervalIdRef.current.idle) {
+      clearInterval(intervalIdRef.current.idle);
+      intervalIdRef.current.idle = null;
+    }
+  };
 
   const onClickIcon = () => {
     setRotation(rotation === 'normal' ? 'reverse' : 'normal');
@@ -20,10 +60,18 @@ function App() {
 
   const onMouseMove = (e: MouseEvent<HTMLDivElement>) => {
     setHeight(minIconHeight + (e.clientX + e.clientY) * ratio);
+
+    clearIdleInterval();
+    startIdleInterval();
   };
 
   return (
-    <div className="App" onMouseMove={onMouseMove}>
+    <div
+      className="App"
+      onMouseMove={onMouseMove}
+      onMouseOver={startIdleInterval}
+      onMouseOut={clearIdleInterval}
+    >
       <header className="App-header">
         <img
           src={logo}
@@ -32,17 +80,13 @@ function App() {
           style={{ animationDirection: rotation, height }}
           onClick={onClickIcon}
         />
+        
         <p>
-          Edit <code>src/App.tsx</code> and save to reload.
+          This Page has been Opened for {openedTime} seconds
         </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <p>
+          Idle time is {idleTime} seconds
+        </p>
       </header>
     </div>
   );
