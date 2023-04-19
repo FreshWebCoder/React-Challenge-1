@@ -1,12 +1,27 @@
-import React from 'react';
+import { useState } from 'react';
+
+import type { RotationType } from './types';
+
 import logo from './logo.svg';
 import './App.css';
 
 function App() {
+  const [rotation, setRotation] = useState<RotationType>('normal');
+
+  const onClickIcon = () => {
+    setRotation(rotation === 'normal' ? 'reverse' : 'normal');
+  };
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
+        <img
+          src={logo}
+          className="App-logo"
+          alt="logo"
+          style={{ animationDirection: rotation }}
+          onClick={onClickIcon}
+        />
         <p>
           Edit <code>src/App.tsx</code> and save to reload.
         </p>
